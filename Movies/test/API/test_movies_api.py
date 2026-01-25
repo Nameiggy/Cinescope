@@ -1,6 +1,7 @@
 
 import json
 
+
 from Movies.conftest import info_movies
 from Movies.test.API.API_Manegment  import ApiManager
 
@@ -10,18 +11,14 @@ class TestApi:
     def test_get_movies (self,api_manager:ApiManager, info_movies):
 
         movies = info_movies.get('movies', [])
-        print(f"Всего фильмов на странице: {len(movies)}")
+        assert len(movies) > 0, "Должен быть хотя бы один фильм"
 
-        for movie in movies:
 
-            print("\n" + "=" * 50)
-            print(f"Фильм ID: {movie.get('id')}")
-            print("=" * 50)
-
-            # Преобразуем фильм в JSON с отступами
-            movie_json = json.dumps(movie, ensure_ascii=False, indent=2)
-            print(movie_json)
-
+    def test_genre_filter_works(self,filtered_movies):
+        # Проверяем фильтрацию
+        for movie in filtered_movies:
+                assert movie["genreId"] == 1
+        print(f"✓ Фильтрация работает: {len(filtered_movies)} фильмов с genreId=1")
 
 
     def test_post_movies(self,api_manager: ApiManager,post_movies_session):
@@ -38,9 +35,15 @@ class TestApi:
 
 
 
-    def test_movies_id(self,info_movies):
+    def test_movies_id(self,api_manager:ApiManager):
 
-        movies = info_movies.get("movies", [])
+        movies = api_manager.api_get_movies.get_movies()
+
+        data = movies.json()
+        if isinstance(data,dict) and "movies" in data:
+            movies = data["movies"]
+        else:
+            movies = []
 
         target_movie = None
         for movie in movies:

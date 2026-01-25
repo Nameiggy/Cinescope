@@ -15,8 +15,45 @@ def info_movies(api_manager):
 
     if response.status_code == 200:
         data = response.json()
-        return data
+        movies = data.get('movies', [])
+
+        print(f"\n" + "=" * 50)
+        print(f"ВСЕГО ФИЛЬМОВ НА СТРАНИЦЕ: {len(movies)}")
+        print("=" * 50)
+
+        for movie in movies:
+            print("\n" + "=" * 50)
+            print(f"ФИЛЬМ ID: {movie.get('id')}")
+            print("=" * 50)
+
+            # JSON с отступами
+            movie_json = json.dumps(movie, ensure_ascii=False, indent=2)
+            print(movie_json)
+
+        return data  # полный ответ
     return []
+
+
+@pytest.fixture
+def filtered_movies(api_manager):
+    """Фикстура для тестирования фильтров"""
+    response = api_manager.api_get_movies.get_movies(params={"genreId": 1})
+
+    data = response.json()
+
+    # Обрабатываем структуру ответа
+    if isinstance(data, dict) and "movies" in data:
+        movies = data["movies"]
+    elif isinstance(data, list):
+        movies = data
+    else:
+        pytest.fail(f"Неизвестный формат ответа: {type(data)}")
+        return []  # на случай если pytest.fail не остановит выполнение
+
+    return movies
+
+
+
 
 
 @pytest.fixture(scope="session")
@@ -61,7 +98,7 @@ def post_movies_session(api_manager,movie_test_data,admin_auth_session):
 
 
 @pytest.fixture(scope="session")
-def patch_movies(api_manager,movie_patch_data,info_movies,admin_auth_session):
+def patch_movies(api_manager,movie_patch_data,admin_auth_session):
 
     response = api_manager.api_patch_movies.patch_movie(movie_patch_data)
 
@@ -136,7 +173,7 @@ def movie_test_data():
 
 @pytest.fixture(scope="session")
 def deletes_movies(api_manager,admin_auth_session,info_movies):
-    movie_id = 243
+    movie_id = 249
 
     movie_name = "Unknown"
     for movie in info_movies.get("movies",[]):
@@ -168,7 +205,7 @@ def admin_auth_session(requester, session,api_manager):
         method="POST",
         endpoint=LOGIN_ENDPOINT,
         data=SUPER_ADMIN,
-        expected_status=201
+        expected_status=200
     )
     if response.status_code == 200 or response.status_code == 201:
         token = response.json().get("token") or response.json().get("accessToken")

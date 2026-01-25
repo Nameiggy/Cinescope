@@ -10,12 +10,13 @@ class GetMovies (CustomRequester):
 
 
 
-    def get_movies (self, expected_status = 200):
+    def get_movies (self,params=None, expected_status = 200):
 
 
         return self.send_request(
          method = "GET",
          endpoint= ENDPOINT,
+         params=params,
          expected_status=expected_status,
 
         )

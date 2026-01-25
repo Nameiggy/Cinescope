@@ -1,5 +1,7 @@
 
 import json
+from typing import Any
+
 import requests
 import logging
 import os
@@ -34,9 +36,9 @@ class CustomRequester:
         self.session.headers.update(self.headers)
 
 
-    def send_request(self, method, endpoint, data=None, expected_status=200, need_logging=True):
+    def send_request(self, method: str, endpoint: str, data: dict = None, params: dict = None, expected_status: int = 200, need_logging: bool = True):
         url = f"{self.base_url}{endpoint}"
-        response = self.session.request(method, url, json=data)
+        response = self.session.request(method, url, json=data,params=params)
         if need_logging:
             self.log_request_and_response(response)
         if response.status_code != expected_status:
